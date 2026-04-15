@@ -40,6 +40,7 @@ async function fmpProfile(ticker: string): Promise<any> {
 export type ETFData = {
   ticker: string;
   name: string;
+  price: number;
   return1y: number;
   return3y: number;
   return5y: number;
@@ -152,6 +153,7 @@ export async function fetchETFData(ticker: string): Promise<ETFData> {
   return {
     ticker: t,
     name: profile.companyName || meta.longName || meta.shortName || t,
+    price: currentPrice,
     return1y: r1,
     return3y: r3,
     return5y: r5,
