@@ -18,6 +18,7 @@ export default function HomePage() {
   const [rawEtfs, setRawEtfs] = useState<ETFData[]>([]);   // data from API
   const [displayEtfs, setDisplayEtfs] = useState<ETFData[]>([]); // data shown in table (with manual overrides)
   const [manualInputs, setManualInputs] = useState<ManualInputsMap>({});
+  const [cellOverrides, setCellOverrides] = useState<Record<string, Record<string, string>>>({}); // inline "—" overrides
   const [dirty, setDirty] = useState(false); // manual inputs changed but not yet applied
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,11 +36,12 @@ export default function HomePage() {
     try {
       const saved = localStorage.getItem("fyc-comparison");
       if (!saved) return;
-      const { tickers: t, rawEtfs: r, displayEtfs: d, manualInputs: m } = JSON.parse(saved);
+      const { tickers: t, rawEtfs: r, displayEtfs: d, manualInputs: m, cellOverrides: co } = JSON.parse(saved);
       if (t) setTickers(t);
       if (r) setRawEtfs(r);
       if (d) setDisplayEtfs(d);
       if (m) setManualInputs(m);
+      if (co) setCellOverrides(co);
     } catch {}
   }, []);
 
@@ -49,10 +51,10 @@ export default function HomePage() {
     try {
       localStorage.setItem(
         "fyc-comparison",
-        JSON.stringify({ tickers, rawEtfs, displayEtfs, manualInputs })
+        JSON.stringify({ tickers, rawEtfs, displayEtfs, manualInputs, cellOverrides })
       );
     } catch {}
-  }, [tickers, rawEtfs, displayEtfs, manualInputs]);
+  }, [tickers, rawEtfs, displayEtfs, manualInputs, cellOverrides]);
 
   function addTicker() {
     const t = input.trim().toUpperCase();
@@ -135,6 +137,13 @@ export default function HomePage() {
     setDirty(false);
   }
 
+  function handleCellOverride(ticker: string, key: string, value: string) {
+    setCellOverrides((prev) => ({
+      ...prev,
+      [ticker]: { ...(prev[ticker] || {}), [key]: value },
+    }));
+  }
+
   if (!authReady) return null;
 
   return (
@@ -190,7 +199,11 @@ export default function HomePage() {
       {error && <p className="text-red-700 mb-4">{error}</p>}
 
       {/* Comparison table */}
-      <ComparisonTable etfs={displayEtfs} />
+      <ComparisonTable
+        etfs={displayEtfs}
+        cellOverrides={cellOverrides}
+        onCellOverride={handleCellOverride}
+      />
 
       {/* Manual inputs section */}
       {rawEtfs.length > 0 && (

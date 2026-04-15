@@ -3,9 +3,17 @@ import { CRITERIA, CATEGORIES } from "@/lib/criteria";
 import { bestByCriterion, computeScores } from "@/lib/scoring";
 import type { ETFData } from "@/lib/fmp";
 
-export default function ComparisonTable({ etfs }: { etfs: ETFData[] }) {
+type CellOverrides = Record<string, Record<string, string>>; // ticker → criterionKey → raw string
+
+interface Props {
+  etfs: ETFData[];
+  cellOverrides?: CellOverrides;
+  onCellOverride?: (ticker: string, key: string, value: string) => void;
+}
+
+export default function ComparisonTable({ etfs, cellOverrides = {}, onCellOverride }: Props) {
   if (etfs.length === 0) return null;
-  const scores = computeScores(etfs);
+  const scores = computeScores(etfs, cellOverrides);
 
   return (
     <div className="overflow-x-auto border border-black/10 rounded-xl">
@@ -23,7 +31,13 @@ export default function ComparisonTable({ etfs }: { etfs: ETFData[] }) {
         </thead>
         <tbody>
           {CATEGORIES.map((cat) => (
-            <CategoryGroup key={cat} category={cat} etfs={etfs} />
+            <CategoryGroup
+              key={cat}
+              category={cat}
+              etfs={etfs}
+              cellOverrides={cellOverrides}
+              onCellOverride={onCellOverride}
+            />
           ))}
           <tr className="bg-brand-yellow font-bold">
             <td className="px-4 py-3">Puntaje global /100</td>
@@ -42,9 +56,13 @@ export default function ComparisonTable({ etfs }: { etfs: ETFData[] }) {
 function CategoryGroup({
   category,
   etfs,
+  cellOverrides,
+  onCellOverride,
 }: {
   category: string;
   etfs: ETFData[];
+  cellOverrides: CellOverrides;
+  onCellOverride?: (ticker: string, key: string, value: string) => void;
 }) {
   const rows = CRITERIA.filter((c) => c.category === category);
   return (
@@ -58,20 +76,36 @@ function CategoryGroup({
         </td>
       </tr>
       {rows.map((c) => {
-        const bestTicker = bestByCriterion(etfs, c.key);
+        const bestTicker = bestByCriterion(etfs, c.key, cellOverrides);
         return (
           <tr key={c.key} className="border-t border-black/5">
             <td className="px-4 py-2 text-black/80">{c.label}</td>
             {etfs.map((e) => {
               const raw = c.get(e);
+              const isNull = raw == null || (typeof raw === "number" && isNaN(raw));
+              const override = cellOverrides[e.ticker]?.[c.key] ?? "";
               const isBest = bestTicker === e.ticker;
+
+              // Show inline input for null/boolean fields that are editable
+              if (isNull && onCellOverride && c.direction !== "neutral") {
+                return (
+                  <td key={e.ticker} className="px-2 py-1 text-center">
+                    <input
+                      type="number"
+                      value={override}
+                      onChange={(ev) => onCellOverride(e.ticker, c.key, ev.target.value)}
+                      placeholder="—"
+                      className="w-20 text-center text-xs border border-black/20 rounded px-1 py-0.5 bg-white placeholder-black/30 focus:outline-none focus:border-black/50"
+                    />
+                  </td>
+                );
+              }
+
               return (
                 <td
                   key={e.ticker}
                   className={`px-4 py-2 text-center ${
-                    isBest
-                      ? "bg-brand-goodBg text-brand-goodFg font-semibold"
-                      : ""
+                    isBest ? "bg-brand-goodBg text-brand-goodFg font-semibold" : ""
                   }`}
                 >
                   {c.format(raw)}

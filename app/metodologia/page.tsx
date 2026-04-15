@@ -152,7 +152,7 @@ export default function MetodologiaPage() {
           <li><strong>Índice replicado:</strong> nombre del benchmark que sigue el ETF</li>
           <li><strong>Número de posiciones:</strong> cuántos activos tiene en cartera</li>
           <li><strong>Concentración Top 10:</strong> qué porcentaje del ETF está en sus 10 mayores posiciones</li>
-          <li><strong>P/E Ratio:</strong> relación precio/ganancia promedio ponderada de los activos del ETF</li>
+          <li><strong>P/E Ratio:</strong> relación precio/ganancia promedio ponderada de los activos del ETF. En realidad cambia con frecuencia: se actualiza con cada reporte de ganancias trimestrales y con los movimientos diarios de precios. El dato en la tabla es una referencia aproximada y puede tener semanas de retraso</li>
           <li><strong>Tracking Difference:</strong> diferencia entre el rendimiento del ETF y su índice de referencia</li>
           <li><strong>Ex-Dividend Date:</strong> última fecha en que se debía ser tenedor para recibir el dividendo</li>
         </ul>
