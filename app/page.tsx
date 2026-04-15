@@ -92,9 +92,18 @@ export default function HomePage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Comparador de ETF</h1>
-      <p className="text-black/60 mb-6">
-        Agrega tickers y compáralos en múltiples criterios.
+      <p className="text-black/60 mb-2">
+        Agrega los tickers de los ETFs que quieras comparar y presiona <strong className="text-black">Comparar</strong>.
       </p>
+      <div className="bg-brand-cream border border-black/10 rounded-lg px-4 py-3 mb-6 text-sm text-black/70 space-y-1">
+        <p>📋 Algunos datos no están disponibles de forma automática y aparecerán como un campo editable en la tabla. Puedes buscarlos en:</p>
+        <ul className="list-disc list-inside space-y-0.5 mt-1 ml-1">
+          <li><strong className="text-black">ETF.com</strong> — Spread Bid-Ask, Tracking Difference, concentración Top 10</li>
+          <li><strong className="text-black">Morningstar.com</strong> — P/E Ratio, estilo, composición</li>
+          <li><strong className="text-black">Sitio del emisor</strong> (iShares.com, Vanguard.com, Invesco.com) — TER, holdings, Ex-Dividend Date</li>
+        </ul>
+        <p className="mt-1">El puntaje se actualiza automáticamente al ingresar los datos.</p>
+      </div>
 
       {/* Ticker pills */}
       <div className="flex flex-wrap gap-2 mb-3">
