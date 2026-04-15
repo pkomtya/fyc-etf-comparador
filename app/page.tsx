@@ -1,8 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import ComparisonTable from "./components/ComparisonTable";
+import ManualInputs, {
+  ManualInputsMap,
+  ManualOverrides,
+  emptyOverride,
+} from "./components/ManualInputs";
 import type { ETFData } from "@/lib/fmp";
 
 export default function HomePage() {
@@ -10,16 +15,44 @@ export default function HomePage() {
   const [authReady, setAuthReady] = useState(false);
   const [tickers, setTickers] = useState<string[]>(["VOO", "QQQ", "VGT"]);
   const [input, setInput] = useState("");
-  const [etfs, setEtfs] = useState<ETFData[]>([]);
+  const [rawEtfs, setRawEtfs] = useState<ETFData[]>([]);   // data from API
+  const [displayEtfs, setDisplayEtfs] = useState<ETFData[]>([]); // data shown in table (with manual overrides)
+  const [manualInputs, setManualInputs] = useState<ManualInputsMap>({});
+  const [dirty, setDirty] = useState(false); // manual inputs changed but not yet applied
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auth guard
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) router.replace("/login");
       else setAuthReady(true);
     });
   }, [router]);
+
+  // Restore comparison state from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("fyc-comparison");
+      if (!saved) return;
+      const { tickers: t, rawEtfs: r, displayEtfs: d, manualInputs: m } = JSON.parse(saved);
+      if (t) setTickers(t);
+      if (r) setRawEtfs(r);
+      if (d) setDisplayEtfs(d);
+      if (m) setManualInputs(m);
+    } catch {}
+  }, []);
+
+  // Persist comparison state to localStorage whenever it changes
+  useEffect(() => {
+    if (rawEtfs.length === 0) return;
+    try {
+      localStorage.setItem(
+        "fyc-comparison",
+        JSON.stringify({ tickers, rawEtfs, displayEtfs, manualInputs })
+      );
+    } catch {}
+  }, [tickers, rawEtfs, displayEtfs, manualInputs]);
 
   function addTicker() {
     const t = input.trim().toUpperCase();
@@ -29,7 +62,14 @@ export default function HomePage() {
   }
 
   function removeTicker(t: string) {
-    setTickers(tickers.filter((x) => x !== t));
+    setTickers((prev) => prev.filter((x) => x !== t));
+    setRawEtfs((prev) => prev.filter((e) => e.ticker !== t));
+    setDisplayEtfs((prev) => prev.filter((e) => e.ticker !== t));
+    setManualInputs((prev) => {
+      const next = { ...prev };
+      delete next[t];
+      return next;
+    });
   }
 
   async function compare() {
@@ -44,12 +84,55 @@ export default function HomePage() {
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Error");
-      setEtfs(j.etfs);
+      setRawEtfs(j.etfs);
+      // Initialize manual inputs for new tickers
+      setManualInputs((prev) => {
+        const next = { ...prev };
+        for (const etf of j.etfs) {
+          if (!next[etf.ticker]) next[etf.ticker] = emptyOverride();
+        }
+        return next;
+      });
+      // Apply any existing manual overrides immediately
+      setDisplayEtfs(applyOverrides(j.etfs, manualInputs));
+      setDirty(false);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  // Merge manual overrides into ETF data
+  function applyOverrides(etfs: ETFData[], overrides: ManualInputsMap): ETFData[] {
+    return etfs.map((etf) => {
+      const o: ManualOverrides | undefined = overrides[etf.ticker];
+      if (!o) return etf;
+      return {
+        ...etf,
+        spreadBidAsk: o.spreadBidAsk !== "" ? parseFloat(o.spreadBidAsk) : etf.spreadBidAsk,
+        trackingDifference:
+          o.trackingDifference !== "" ? parseFloat(o.trackingDifference) : etf.trackingDifference,
+        currencyHedged: o.currencyHedged,
+      };
+    });
+  }
+
+  function handleManualChange(
+    ticker: string,
+    field: keyof ManualOverrides,
+    value: string | boolean
+  ) {
+    setManualInputs((prev) => ({
+      ...prev,
+      [ticker]: { ...(prev[ticker] || emptyOverride()), [field]: value },
+    }));
+    setDirty(true);
+  }
+
+  function recalculate() {
+    setDisplayEtfs(applyOverrides(rawEtfs, manualInputs));
+    setDirty(false);
   }
 
   if (!authReady) return null;
@@ -58,9 +141,10 @@ export default function HomePage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Comparador de ETF</h1>
       <p className="text-black/60 mb-6">
-        Agrega tickers y compáralos en 23 criterios.
+        Agrega tickers y compáralos en múltiples criterios.
       </p>
 
+      {/* Ticker pills */}
       <div className="flex flex-wrap gap-2 mb-3">
         {tickers.map((t) => (
           <span
@@ -79,6 +163,7 @@ export default function HomePage() {
         ))}
       </div>
 
+      {/* Ticker input */}
       <div className="flex gap-2 mb-6">
         <input
           value={input}
@@ -104,7 +189,19 @@ export default function HomePage() {
 
       {error && <p className="text-red-700 mb-4">{error}</p>}
 
-      <ComparisonTable etfs={etfs} />
+      {/* Comparison table */}
+      <ComparisonTable etfs={displayEtfs} />
+
+      {/* Manual inputs section */}
+      {rawEtfs.length > 0 && (
+        <ManualInputs
+          tickers={rawEtfs.map((e) => e.ticker)}
+          values={manualInputs}
+          onChange={handleManualChange}
+          onRecalculate={recalculate}
+          dirty={dirty}
+        />
+      )}
     </div>
   );
 }

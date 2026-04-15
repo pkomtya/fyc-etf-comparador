@@ -17,8 +17,12 @@ const pct = (v: any) =>
   v == null || isNaN(Number(v)) ? "—" : `${Number(v).toFixed(2)}%`;
 const num = (v: any) =>
   v == null || isNaN(Number(v)) ? "—" : Number(v).toFixed(2);
-const money = (v: any) =>
-  v == null || isNaN(Number(v)) ? "—" : `$${Number(v).toFixed(1)}M`;
+const money = (v: any) => {
+  if (v == null || isNaN(Number(v))) return "—";
+  const n = Number(v);
+  if (n >= 1000) return `$${(n / 1000).toLocaleString("es-MX", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}B`;
+  return `$${n.toLocaleString("es-MX", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M`;
+};
 
 export const CATEGORIES = [
   "Rendimiento",
@@ -37,7 +41,7 @@ export const CRITERIA: Criterion[] = [
   { key: "return5y", label: "Rend. 5 años (%)", category: "Rendimiento", direction: "higher", format: pct, get: (d) => d.return5y, weight: 6, numeric: true },
 
   // Costo (20)
-  { key: "expenseRatio", label: "TER / Expense Ratio (%)", category: "Costo y eficiencia", direction: "lower", format: pct, get: (d) => d.expenseRatio * 100, weight: 10, numeric: true },
+  { key: "expenseRatio", label: "TER / Expense Ratio (%)", category: "Costo y eficiencia", direction: "lower", format: pct, get: (d) => d.expenseRatio == null ? null : d.expenseRatio * 100, weight: 10, numeric: true },
   { key: "trackingDifference", label: "Tracking Difference (%)", category: "Costo y eficiencia", direction: "lower", format: pct, get: (d) => d.trackingDifference, weight: 5, numeric: true },
   { key: "spreadBidAsk", label: "Spread Bid-Ask (%)", category: "Costo y eficiencia", direction: "lower", format: pct, get: (d) => d.spreadBidAsk, weight: 5, numeric: true },
 

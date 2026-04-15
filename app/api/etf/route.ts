@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchETFData } from "@/lib/fmp";
 
 const CACHE_HOURS = 12;
+const SCHEMA_VERSION = 2;
 
 function admin() {
   return createClient(
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
 
       const fresh =
         cached &&
+        (cached.data as any)?.__v === SCHEMA_VERSION &&
         Date.now() - new Date(cached.updated_at).getTime() <
           CACHE_HOURS * 3600 * 1000;
 
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
       }
 
       try {
-        const data = await fetchETFData(ticker);
+        const data = { ...(await fetchETFData(ticker)), __v: SCHEMA_VERSION };
         await sb
           .from("etf_cache")
           .upsert({ ticker, data, updated_at: new Date().toISOString() });

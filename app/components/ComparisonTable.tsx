@@ -12,9 +12,9 @@ export default function ComparisonTable({ etfs }: { etfs: ETFData[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-brand-black text-brand-yellow">
-            <th className="text-left px-4 py-3 font-semibold">Criterio</th>
+            <th className="text-left px-4 py-3 font-semibold w-48">Criterio</th>
             {etfs.map((e) => (
-              <th key={e.ticker} className="text-left px-4 py-3 font-semibold">
+              <th key={e.ticker} className="text-center px-4 py-3 font-semibold">
                 {e.ticker}
                 <div className="text-xs opacity-70 font-normal">{e.name}</div>
               </th>
@@ -28,7 +28,7 @@ export default function ComparisonTable({ etfs }: { etfs: ETFData[] }) {
           <tr className="bg-brand-yellow font-bold">
             <td className="px-4 py-3">Puntaje global /100</td>
             {etfs.map((e) => (
-              <td key={e.ticker} className="px-4 py-3">
+              <td key={e.ticker} className="px-4 py-3 text-center">
                 {scores[e.ticker]}/100
               </td>
             ))}
@@ -68,7 +68,7 @@ function CategoryGroup({
               return (
                 <td
                   key={e.ticker}
-                  className={`px-4 py-2 ${
+                  className={`px-4 py-2 text-center ${
                     isBest
                       ? "bg-brand-goodBg text-brand-goodFg font-semibold"
                       : ""
