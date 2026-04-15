@@ -90,9 +90,10 @@ export default function MetodologiaPage() {
           Sharpe = (Rendimiento anual − Tasa libre de riesgo) / Volatilidad anual
         </FormulaBox>
         <p className="mb-2 text-sm text-black/70">
-          Como tasa libre de riesgo usamos <strong>10% anual</strong>, que aproxima el
-          rendimiento de los CETES mexicanos. Este valor es relevante para un inversionista
-          mexicano que evalúa si conviene más invertir en ETFs o en CETES.
+          Como tasa libre de riesgo usamos <strong>7.16% anual</strong> (CETES a 1 año,
+          abril 2026). Este valor es relevante para un inversionista mexicano que evalúa
+          si conviene más invertir en ETFs o en CETES. Se actualiza periódicamente conforme
+          cambia la política monetaria de Banxico.
         </p>
         <Note>
           Un Sharpe mayor a 1.0 se considera bueno. Mayor a 2.0 es excelente.

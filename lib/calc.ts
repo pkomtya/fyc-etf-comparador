@@ -16,8 +16,10 @@ export function annualVolatility(prices: number[]): number {
   return dailyStd * Math.sqrt(252) * 100;
 }
 
-// Annualized Sharpe ratio using Mexican CETES ~10% as risk-free
-export function sharpeRatio(prices: number[], riskFree = 0.1): number {
+// Annualized Sharpe ratio using Mexican CETES 1 año as risk-free (7.16% — abril 2026)
+export const CETES_RISK_FREE = 0.0716;
+
+export function sharpeRatio(prices: number[], riskFree = CETES_RISK_FREE): number {
   if (prices.length < 2) return 0;
   const rets: number[] = [];
   for (let i = 1; i < prices.length; i++) {
