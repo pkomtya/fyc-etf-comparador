@@ -27,7 +27,7 @@ export default function ComparisonTable({ etfs, cellOverrides = {}, onCellOverri
                 <div className="text-xs opacity-70 font-normal">{e.name}</div>
                 {e.price > 0 && (
                   <div className="text-xs font-normal mt-0.5">
-                    ${e.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {e.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {e.currency}
                   </div>
                 )}
               </th>

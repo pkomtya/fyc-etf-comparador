@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchETFData } from "@/lib/fmp";
 
 const CACHE_HOURS = 12;
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 function admin() {
   return createClient(
