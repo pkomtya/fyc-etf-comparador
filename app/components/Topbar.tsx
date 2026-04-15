@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 const links = [
   { href: "/", label: "Comparador" },
   { href: "/glosario", label: "Glosario" },
+  { href: "/metodologia", label: "Metodología" },
 ];
 
 export default function Topbar() {
