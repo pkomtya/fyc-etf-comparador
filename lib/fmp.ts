@@ -156,7 +156,6 @@ export async function fetchETFData(ticker: string): Promise<ETFData> {
     return3y: r3,
     return5y: r5,
     expenseRatio,
-    trackingDifference: null,
     spreadBidAsk: null,
     volatility: vol,
     beta3y: beta,
