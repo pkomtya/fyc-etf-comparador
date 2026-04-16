@@ -1,8 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/", label: "Comparador" },
@@ -12,21 +10,6 @@ const links = [
 
 export default function Topbar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setEmail(session?.user.email ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  async function logout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
 
   return (
     <header className="bg-brand-yellow text-brand-black border-b border-black/10">
@@ -51,21 +34,6 @@ export default function Topbar() {
               </Link>
             );
           })}
-          {email ? (
-            <button
-              onClick={logout}
-              className="px-3 py-1.5 rounded-md border border-black text-sm font-medium"
-            >
-              Salir
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="px-3 py-1.5 rounded-md border border-black text-sm font-medium"
-            >
-              Entrar
-            </Link>
-          )}
         </nav>
       </div>
     </header>

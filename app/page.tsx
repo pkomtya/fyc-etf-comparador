@@ -1,27 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import ComparisonTable from "./components/ComparisonTable";
 import type { ETFData } from "@/lib/fmp";
 
 export default function HomePage() {
-  const router = useRouter();
-  const [authReady, setAuthReady] = useState(false);
   const [tickers, setTickers] = useState<string[]>(["VOO", "QQQ", "VGT"]);
   const [input, setInput] = useState("");
   const [etfs, setEtfs] = useState<ETFData[]>([]);
   const [cellOverrides, setCellOverrides] = useState<Record<string, Record<string, string>>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Auth guard
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) router.replace("/login");
-      else setAuthReady(true);
-    });
-  }, [router]);
 
   // Restore state from localStorage on mount
   useEffect(() => {
@@ -86,8 +74,6 @@ export default function HomePage() {
       [ticker]: { ...(prev[ticker] || {}), [key]: value },
     }));
   }
-
-  if (!authReady) return null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
